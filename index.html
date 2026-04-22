@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samawi TZ</title>
+
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    background: #f4f4f4;
+}
+
+.header {
+    background: #002366;
+    color: gold;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.content {
+    padding: 15px;
+    margin-bottom: 70px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+button {
+    padding: 10px;
+    background: #002366;
+    color: gold;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+input {
+    padding: 10px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.nav-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #002366;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+
+.nav-item {
+    color: gold;
+    text-align: center;
+    font-size: 12px;
+    text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">SAMAWI TZ</div>
+
+<div class="content" id="main"></div>
+
+<div class="nav-bar">
+    <a href="#" class="nav-item" onclick="show('home')">🏠 Home</a>
+    <a href="#" class="nav-item" onclick="show('mazao')">🌾 Mazao</a>
+    <a href="#" class="nav-item" onclick="show('mifugo')">🐄 Mifugo</a>
+    <a href="#" class="nav-item" onclick="show('wallet')">💰 Wallet</a>
+    <a href="#" class="nav-item" onclick="show('profile')">👤 Profile</a>
+</div>
+
+<script>
+// INIT PI SDK
+Pi.init({ version: "2.0" });
+
+let currentUser = null;
+
+// LOGIN FUNCTION
+async function login() {
+    try {
+        const scopes = ['username', 'payments'];
+        const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        currentUser = auth.user;
+        alert("Umeingia kama " + currentUser.username);
+        show('home');
+    } catch (err) {
+        alert("Login failed");
+    }
+}
+
+// HANDLE PAYMENT
+function onIncompletePaymentFound(payment) {
+    console.log("Incomplete payment:", payment);
+}
+
+// CREATE PAYMENT
+function pay() {
+    const paymentData = {
+        amount: 1,
+        memo: "Nunua bidhaa Samawi TZ",
+        metadata: { type: "buy" }
+    };
+
+    Pi.createPayment(paymentData, {
+        onReadyForServerApproval: function(paymentId) {
+            console.log(paymentId);
+        },
+        onReadyForServerCompletion: function(paymentId, txid) {
+            console.log(txid);
+        },
+        onCancel: function(paymentId) {
+            alert("Payment cancelled");
+        },
+        onError: function(error) {
+            console.error(error);
+        }
+    });
+}
+
+// MAIN NAVIGATION
+function show(page) {
+
+if(page === "home") {
+document.getElementById('main').innerHTML = `
+<h3>Karibu Samawi TZ</h3>
+<div class="card">Soko la mazao na mifugo kwa kutumia Pi</div>
+<button onclick="login()">Login na Pi</button>
+`;
+}
+
+if(page === "mazao") {
+document.getElementById('main').innerHTML = `
+<h3>Mazao</h3>
+<div class="card">Mahindi - Tsh 500/kg <br><button onclick="pay()">Nunua kwa Pi</button></div>
+<div class="card">Mpunga - Tsh 800/kg <br><button onclick="pay()">Nunua kwa Pi</button></div>
+
+<h4>Upload bidhaa yako</h4>
+<input type="file" onchange="preview(event)">
+<img id="imgPreview" width="100%" />
+`;
+}
+
+if(page === "mifugo") {
+document.getElementById('main').innerHTML = `
+<h3>Mifugo</h3>
+<div class="card">Ng'ombe - Tsh 500,000 <br><button onclick="pay()">Nunua kwa Pi</button></div>
+<div class="card">Mbuzi - Tsh 120,000 <br><button onclick="pay()">Nunua kwa Pi</button></div>
+`;
+}
+
+if(page === "wallet") {
+document.getElementById('main').innerHTML = `
+<h3>Wallet</h3>
+<div class="card">Salio lako: 0 Pi</div>
+`;
+}
+
+if(page === "profile") {
+document.getElementById('main').innerHTML = `
+<h3>Profile</h3>
+<div class="card">Jina: ${currentUser ? currentUser.username : "Huja login"}</div>
+`;
+}
+}
+
+// IMAGE PREVIEW
+function preview(event) {
+    const img = document.getElementById('imgPreview');
+    img.src = URL.createObjectURL(event.target.files[0]);
+}
+
+// DEFAULT PAGE
+show('home');
+</script>
+
+</body>
+</html>
